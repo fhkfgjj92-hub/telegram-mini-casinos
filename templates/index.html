@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Мини-рулетка</title>
+<style>
+body { font-family: Arial; text-align:center; margin-top:50px; }
+button { padding:10px 20px; margin:10px; font-size:16px; }
+</style>
+</head>
+<body>
+<h2>Мини-рулетка 🎰</h2>
+<p>Баланс: <span id="coins">0</span> коинов</p>
+<input type="hidden" id="user_id" value="7869085121"> <!-- сюда вставляется ваш ID -->
+<button onclick="play()">Ставка 25 коинов</button>
+<p id="result"></p>
+
+<script>
+const MIN_BET = 25;
+let user_id = document.getElementById("user_id").value;
+
+async function fetchBalance() {
+    let res = await fetch(`/api/balance/${user_id}`);
+    let data = await res.json();
+    document.getElementById("coins").innerText = data.balance;
+}
+
+async function play() {
+    let balance = parseInt(document.getElementById("coins").innerText);
+    if(balance < MIN_BET){
+        document.getElementById("result").innerText = "Недостаточно коинов!";
+        return;
+    }
+    let res = await fetch("/api/play", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({user_id, bet: MIN_BET})
+    });
+    let data = await res.json();
+    if(data.status === "ok"){
+        document.getElementById("coins").innerText = data.balance;
+        document.getElementById("result").innerText = data.win ? "🎉 Вы выиграли!" : "💔 Проигрыш!";
+    } else {
+        document.getElementById("result").innerText = data.message;
+    }
+}
+
+fetchBalance();
+</script>
+</body>
+</html>
